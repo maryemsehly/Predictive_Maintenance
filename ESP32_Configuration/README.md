@@ -6,7 +6,7 @@ Firmware handling the ESP32's network configuration and the establishment of sec
 
 | File | Description |
 |---|---|
-| `OpenRemoteESP32.ino` | Firmware for network configuration and platform connection |
+| `ESP32_Configuration.ino` | Firmware for network configuration and platform connection |
 
 ## How It Works
 
