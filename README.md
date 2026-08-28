@@ -79,7 +79,7 @@ The trained Random Forest model reaches an overall accuracy of **96%**, with the
 | Mixed failure | 0.90 |
 | Thermal failure | 0.87 |
 
-## End-to-End Pipeline
+## Pipeline
 
 1. Sensors continuously measure temperature, vibration, and current on the machine.
 2. The ESP32 collects, structures, and transmits this data via HTTPS/MQTTS to the platform.
