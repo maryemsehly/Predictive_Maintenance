@@ -1,80 +1,36 @@
-# OpenRemote
+# Platform_OpenRemote
 
-![CI/CD](https://github.com/openremote/openremote/workflows/CI/CD/badge.svg)
-[![Open Source? Yes!](https://badgen.net/badge/Open%20Source%20%3F/Yes%21/blue?icon=github)](https://github.com/Naereen/badges/)
-<!-- ![tests](https://github.com/openremote/openremote/workflows/tests/badge.svg) -->
+Centralized IoT platform, based on **OpenRemote**, used to receive, store, visualize, and act on the monitoring data sent by the ESP32, as well as to query the machine's PLC directly through a Modbus TCP agent.
 
-[Source](https://github.com/openremote/openremote) **·** [Documentation](https://docs.openremote.io) **·** [Forum](https://forum.openremote.io) **·** [Issues](https://github.com/openremote/openremote/issues) **·** [Docker Images](https://hub.docker.com/u/openremote/) **·** [OpenRemote Inc.](https://openremote.io)
+## Role in the Architecture
 
-Welcome to OpenRemote; an intuitive user-friendly 100% open source IoT platform. You can build a complete IoT device management solution including: device management and auto provisioning, customisation of asset types, automation via when-then, flow, javascript and groovy rules, data analytics, connectivity via several protocol agents and manager APIs (e.g. MQTT broker, HTTP/REST, WS), Multi-tenancy (realms), Users and roles management, Edge gateway, Front-end UI web components and consoles, and an Insights dashboard builder. 
+Connected devices (ESP32, PLC) send their data through secure protocols (**MQTTS**, **HTTPS**, **TCP/IP**, **WSS**). This data is received by the OpenRemote **Manager**, which processes it through several services: mapping, notifications, automation rules, optimization.
 
-As the code base is 100% open source, applications are limitless. Here's an architecture overview:
+The Manager relies on **agents** to interact with the different protocols used by connected devices:
 
-<img src="https://openremote.io/wp-content/uploads/2023/09/OpenRemote_Architecture-scaled.jpg" width="900">
+| Agent | Role |
+|---|---|
+| **Modbus TCP** | Direct reading of data from the machine's PLC (configurable IP address, port, polling interval) |
+| **MQTT** | Receiving monitoring data published by the ESP32 |
+| **HTTP** | Receiving failure prediction results sent by the Machine Learning server |
 
-## Quickstart
+Users view and manage the system through the **Manager Web UI** and **Insights** interfaces.
 
-You can quickly try the online demo with restricted access, login credentials are `smartcity:smartcity`:
+## Implemented Features
 
-[Online demo](https://demo.openremote.app/manager/?realm=smartcity)
+- **Modbus TCP agent management**: create, modify, delete, and connect an agent to a machine's PLC, with data retrieval into dedicated attributes.
+- **Real-time reception and visualization** of monitoring data (temperature, vibration, current).
+- **Reception of failure prediction results** from the Machine Learning model, triggering alerts to the maintenance manager.
+- **User and access management**, platform customization.
 
-The quickest way to get your own environment with full access is to make use of our docker images (both `amd64` and `arm64` are supported). 
-1. Make sure you have [Docker Desktop](https://www.docker.com/products/docker-desktop) installed (v18+). 
-2. Download the docker compose file:
-[OpenRemote Stack](https://raw.githubusercontent.com/openremote/openremote/master/docker-compose.yml) (Right click 'Save link as...')
-3. In a terminal `cd` to where you just saved the compose file and then run:
-```
-    docker compose pull
-    docker compose -p openremote up
-```
-If all goes well then you should now be able to access the OpenRemote Manager UI at [https://localhost](https://localhost). You will need to accept the self-signed 
-certificate, see [here](https://www.technipages.com/google-chrome-bypass-your-connection-is-not-private-message) for details how to do this in Chrome (similar for other browsers).
+## Security
 
+- Encrypted exchanges via **SSL/TLS**, with certificates generated using **mkcert**
+- Authentication via **Keycloak**
+- Secure communications: **HTTPS**, **MQTTS**
 
-### Login credentials
-Username: admin  
-Password: secret
+## Deployment
 
-### Changing host and/or port
-The URL you use to access the system is important, the default is configured as `https://localhost` if you are using a VM or want to run on a different port then you will need to set the `OR_HOSTNAME` and `OR_SSL_PORT` environment variables, so if for example you will be accessing using `https://192.168.1.1:8443` then use the following startup command:
+The platform is containerized with **Docker**, simplifying deployment and configuration.
 
-BASH: 
-```
-OR_HOSTNAME=192.168.1.1 OR_SSL_PORT=8443 docker compose -p openremote up -d
-```
-or
-
-CMD:
-```
-cmd /C "set OR_HOSTNAME=192.168.1.1 && set OR_SSL_PORT=8443 && docker compose -p openremote up -d"
-```
-
-## What next
-Try creating assets, agents, rules, users, realms, etc. using the Manager UI, please refer to the [documentation](https://docs.openremote.io) for more information, some things to try:
-
-- [Manager UI Guide](https://docs.openremote.io/docs/user-guide/manager-ui/) - Learn more about the User Interface
-- [Creating an HTTP Agent tutorial](https://docs.openremote.io/docs/tutorials/open-weather-api-using-http-agent) - Connect to an online weather service
-- [Custom Deployment](https://docs.openremote.io/docs/user-guide/deploying/custom-deployment) - Style the Manager to your brand
-- [Setting up an IDE](https://docs.openremote.io/docs/developer-guide/setting-up-an-ide) - Set up your development environment
-- [Working on the UI](https://docs.openremote.io/docs/developer-guide/working-on-ui-and-apps) - Create a web application compatible with OpenRemote
-- [Creating a custom project](https://docs.openremote.io/docs/developer-guide/creating-a-custom-project) - Create a project with custom protocols, asset types and setup code
-
-## Where's the data stored?
-Persistent data is stored in a PostgreSQL DB which is stored in the `openremote_postgresql-data` docker volume which is durably stored independently of the running containers (see all with `docker volume ls`).
-Note that historical attribute data is purged daily based on value of `OR_DATA_POINTS_MAX_AGE_DAYS`; this value can also be overridden for individual attributes by using the `dataPointsMaxAgeDays` configuration item.
-See the [Developer Guide](https://docs.openremote.io/docs/developer-guide/useful-commands-and-queries/#backuprestore-openremote-db) for details on making backups of the database.
-
-
-## Contributing to OpenRemote
-
-For information and how to set up a development environment, see the [Developer Guide](https://docs.openremote.io/docs/category/developer-guide).
-
-We work with Java, Groovy, TypeScript, Gradle, Docker, and a wide range of APIs and protocol implementations.
-
-We follow the [GitHub Flow](https://docs.github.com/en/get-started/quickstart/github-flow) workflow with tags and releases for published versions of our components; when working on the codebase create descriptive branch names (e.g. `feature/cool_feature_x`, `hotfix/flux_capacitor`, `issue/123`, etc.).
-
-When your changes are complete then create a Pull Request ensuring that your branch is up-to-date with the source branch and that code changes are covered by tests and that the full test suite passes.
-
-## Discuss OpenRemote
-
-Join us on the [community forum](https://forum.openremote.io/).
+> This folder contains a version of OpenRemote adapted to the specific needs of this project (agent configuration, integration of data flows, and predictive maintenance alerts).
