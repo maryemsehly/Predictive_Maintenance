@@ -1,0 +1,17 @@
+{
+  "name": "openremote",
+  "packageManager": "yarn@4.1.0",
+  "private": true,
+  "workspaces": [
+    "ui/util",
+    "ui/app/*",
+    "ui/component/*",
+    "ui/demo/*"
+  ],
+  "devDependencies": {
+    "@openremote/util": "workspace:*"
+  },
+  "dependencies": {
+    "@openremote/or-attribute-input": "workspace:^"
+  }
+}

@@ -1,0 +1,71 @@
+# ============================
+# Python (Data_Collection, Model_ML)
+# ============================
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+
+# ============================
+# Arduino / ESP32 (ESP32_Configuration, Data_Collection)
+# ============================
+*.hex
+*.bin
+build/
+.pio/
+.vscode/
+
+# ============================
+# Java / Gradle (Platform_OpenRemote)
+# ============================
+.gradle/
+build/
+out/
+*.class
+*.jar
+!gradle-wrapper.jar
+
+# ============================
+# Node / Yarn (Platform_OpenRemote)
+# ============================
+node_modules/
+.yarn/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dist/
+
+# ============================
+# IDE / Editeurs
+# ============================
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# ============================
+# CI/CD, Docker, config locale
+# ============================
+.ci_cd/
+.env
+*.env.local
+docker-compose.override.yml
+
+# ============================
+# Fichiers compressés / temporaires
+# ============================
+*.zip
+*.log
+*.tmp
+
+# ============================
+# Secrets (IMPORTANT - ne jamais versionner)
+# ============================
+*credentials*
+*secrets*
+config/wifi_config.h

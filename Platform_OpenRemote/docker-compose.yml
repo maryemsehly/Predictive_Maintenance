@@ -1,0 +1,187 @@
+# OpenRemote v3
+#
+# Profile that runs the stack by default on https://localhost using a self-signed SSL certificate,
+# but optionally on https://$OR_HOSTNAME with an auto generated SSL certificate from Letsencrypt.
+#
+# It is configured to use the AWS logging driver.
+#
+volumes:
+  proxy-data:
+  manager-data:
+  postgresql-data:
+
+services:
+
+  proxy:
+    image: openremote/proxy:${PROXY_VERSION:-latest}
+    restart: always
+    depends_on:
+      manager:
+        condition: service_healthy
+    ports:
+      - "80:80" # Needed for SSL generation using letsencrypt
+      - "${OR_SSL_PORT:-443}:443"
+      - "8883:8883"
+      - "127.0.0.1:8404:8404" # Localhost metrics access
+     # - "502:502" # Expose Modbus TCP port
+    volumes:
+      - proxy-data:/deployment
+    environment:
+
+      # It is important that all services have the same timezone and are time synchronized.
+      # Bearer tokens are only valid for minutes, and authentication fails if Keycloak drifts.
+      TZ: ${TZ:-Europe/Amsterdam}
+
+      # File to which entrypoint logs are written in addition to std out
+      LOGFILE: ${PROXY_LOGFILE:-/var/log/proxy.log}
+
+      # Customize proxy log, defaults to 'notice', requests are logged at 'info'.
+      # Available levels are: emerg, alert, crit, err, warning, notice, info, debug
+      PROXY_LOGLEVEL: ${PROXY_LOGLEVEL:-notice}
+
+      # IANA TLD subdomain for which an SSL certificate should be requested (leave blank for private/externally
+      # generated certificates).
+      DOMAINNAME: ${OR_HOSTNAME:-localhost}
+
+      # IANA TLD comma separated subdomains for which an SSL certificates should be requested (leave blank for
+      # private/externally generated certificates); this is an alternative to DOMAINNAME for multiple domains.
+      DOMAINNAMES: ${OR_ADDITIONAL_HOSTNAMES:-}
+
+      # USE A CUSTOM PROXY CONFIG - COPY FROM https://raw.githubusercontent.com/openremote/proxy/main/haproxy.cfg
+      HAPROXY_CONFIG: ${HAPROXY_CONFIG:-/etc/haproxy/haproxy.cfg}
+
+      # Email address for SSL certificate issuance and expiration notifications.
+      LE_EMAIL: ${OR_EMAIL_ADMIN:-}
+
+      # Enable --staging will manage fake certificates, so avoid hitting the rate limits of Let's Encrypt
+      # when testing (this is important, you are limited to 5 duplicate certificates per week!)
+      # e.g. '--staging'
+      LE_EXTRA_ARGS: ${PROXY_EXTRA_ARGS:-}
+
+      # Provide this value if requesting wildcard certs with Route53 DNS zone; this should be the role to assume to
+      # perform route53 operations if calling across AWS accounts
+      # AWS_ROUTE53_ROLE:
+
+      # Enable SISH HTTP tunnel forwarding
+      #SISH_HOST: sish
+      #SISH_PORT: 8090
+
+      # The proxy supports up to 10 custom redirects from hostname to any path on the
+      # manager service.
+      # e.g. PROXY_HOST_REDIRECT_1_NAME: www.my-console-master.tld
+      #      PROXY_HOST_REDIRECT_1_TARGET: /console/master
+      PROXY_HOST_REDIRECT_1_NAME:
+      PROXY_HOST_REDIRECT_1_TARGET:
+      PROXY_HOST_REDIRECT_2_NAME:
+      PROXY_HOST_REDIRECT_2_TARGET:
+      PROXY_HOST_REDIRECT_3_NAME:
+      PROXY_HOST_REDIRECT_3_TARGET:
+      PROXY_HOST_REDIRECT_4_NAME:
+      PROXY_HOST_REDIRECT_4_TARGET:
+      PROXY_HOST_REDIRECT_5_NAME:
+      PROXY_HOST_REDIRECT_5_TARGET:
+      PROXY_HOST_REDIRECT_6_NAME:
+      PROXY_HOST_REDIRECT_6_TARGET:
+      PROXY_HOST_REDIRECT_7_NAME:
+      PROXY_HOST_REDIRECT_7_TARGET:
+      PROXY_HOST_REDIRECT_8_NAME:
+      PROXY_HOST_REDIRECT_8_TARGET:
+      PROXY_HOST_REDIRECT_9_NAME:
+      PROXY_HOST_REDIRECT_9_TARGET:
+      PROXY_HOST_REDIRECT_10_NAME:
+      PROXY_HOST_REDIRECT_10_TARGET:
+
+      # The proxy removes path prefixes when configured before sending the request to the manager or keycloak.
+      #MANAGER_PATH_PREFIX: /openremote
+      #KEYCLOAK_PATH_PREFIX: /keycloak
+
+
+
+  postgresql:
+    restart: always
+    image: openremote/postgresql:${POSTGRESQL_VERSION:-latest}
+    shm_size: 128mb
+    volumes:
+        - postgresql-data:/var/lib/postgresql/data
+        - manager-data:/storage
+    #ports:
+      #- "5432:5432"
+  keycloak:
+    restart: always
+    image: openremote/keycloak:${KEYCLOAK_VERSION:-latest}
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    volumes:
+      - ./deployment:/deployment
+    environment:
+      KEYCLOAK_ADMIN_PASSWORD: ${OR_ADMIN_PASSWORD:-secret}
+      KC_HOSTNAME: ${OR_HOSTNAME:-localhost}
+      KC_HOSTNAME_PORT: ${OR_SSL_PORT:--1}
+
+
+  manager:
+    #    privileged: true
+    restart: always
+    extends:
+      file: profile/deploy.yml
+      service: manager
+    image: openremote/manager:${MANAGER_VERSION:-develop}
+    build:
+      context: manager/build/install/manager/
+      dockerfile: Dockerfile
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8405:8405"
+      - "1883:1883"
+
+
+    volumes:
+      - manager-data:/storage
+      - ./deployment:/deployment
+      - postgresql-data:/postgres
+      - ./deployment/tmp/datapoint:/deployment/tmp/datapoint
+    environment:
+      MODBUS_HOST: "modbus.server.ip" # Change this to the Modbus server IP address
+      MODBUS_PORT: "502"              # Default Modbus TCP port
+      #MODBUS_SERIAL_PORT: "/dev/ttyUSB0"  # If using Modbus Serial
+     # MODBUS_BAUD_RATE: "9600"        # If using serial communication, add baud rate
+      #MODBUS_PARITY: "NONE"           # Parity for serial communication
+      #MODBUS_STOP_BITS: "1"           # Stop bits for serial communication
+      OR_SETUP_TYPE:
+      OR_ADMIN_PASSWORD:
+      OR_SETUP_RUN_ON_RESTART: ${OR_SETUP_RUN_ON_RESTART:-false}
+      OR_EMAIL_HOST:
+      OR_EMAIL_USER:
+      OR_EMAIL_PASSWORD:
+      OR_EMAIL_X_HEADERS:
+      OR_EMAIL_FROM:
+      OR_EMAIL_ADMIN:
+      OR_METRICS_ENABLED: ${OR_METRICS_ENABLED:-true}
+      OR_HOSTNAME: ${OR_HOSTNAME:-localhost}
+      OR_ADDITIONAL_HOSTNAMES:
+      OR_SSL_PORT: ${OR_SSL_PORT:--1}
+      OR_DEV_MODE: ${OR_DEV_MODE:-false}
+
+      # The following variables will configure the demo
+      OR_FORECAST_SOLAR_API_KEY:
+      OR_OPEN_WEATHER_API_APP_ID:
+      OR_SETUP_IMPORT_DEMO_AGENT_KNX:
+      OR_SETUP_IMPORT_DEMO_AGENT_VELBUS:
+      # Provide a path to the map tiles database file (see https://openmaptiles.com/).
+      OR_MAP_TILES_PATH: ${OR_MAP_TILES_PATH:-/manager/map/mapdata.mbtiles}
+
+      # Override the map settings such as center location and zoom when opening the
+      # manager's map, as well as other style details and colours.
+      OR_MAP_SETTINGS_PATH: ${OR_MAP_SETTINGS_PATH:-/manager/map/mapsettings.json}
+
+      # Location of the custom web content.
+      OR_CUSTOM_APP_DOCROOT: ${OR_CUSTOM_APP_DOCROOT:-/deployment/manager/app}
+
+      # Location for the provisioning files
+      #OR_PROVISIONING_DOCROOT: ${OR_PROVISIONING_DOCROOT:-/deployment/manager/provisioning}
+
+      # Redirect path when root URI is requested
+      OR_ROOT_REDIRECT_PATH: ${OR_ROOT_REDIRECT_PATH:-/manager}

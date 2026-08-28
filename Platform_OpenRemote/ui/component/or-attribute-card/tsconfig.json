@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig",
+  "compilerOptions": {
+    "outDir": "./lib",
+    "rootDir": "src"
+  },
+  "include": [
+    "./src"
+  ],
+  "references": [
+    { "path": "../core" },
+    { "path": "../or-chart" },
+    { "path": "../or-mwc-components" },
+    { "path": "../or-attribute-picker" }
+  ]
+}

@@ -1,0 +1,15 @@
+export const DefaultColor4: string = "#f52627"; // Primary
+export const DefaultColor7: string = "#000000"; // Secondary
+export const DefaultColor1: string = "#FFFFFF"; // Surface
+export const DefaultColor2: string = "#F9F9F9"; // Background
+export const DefaultColor5: string = "#CCCCCC"; // Borders and lines
+export const DefaultColor6: string = "#be0000"; // Invalid/Error
+export const DefaultColor8: string = "#FFFFFF"; // On Primary
+export const DefaultColor3: string = "#4c4c4c"; // Text / On Secondary
+export const DefaultColor9: string = "#000000"; // On Background
+export const DefaultColor10: string = "#000000"; // On Surface
+export const DefaultColor11: string = "#FFFFFF"; // On Error
+export const DefaultBoxShadowBottom: string = "0 5px 5px -5px rgba(0,0,0,0.3)";
+export const DefaultBoxShadow: string = "0 1px 3px 0 rgba(0,0,0,0.21)";
+export const DefaultHeaderHeight: string = "50px";
+export const DefaultDisabledOpacity: string = "0.3";

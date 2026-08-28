@@ -1,0 +1,44 @@
+apply plugin: "java-library"
+
+sourceSets {
+    integration
+    demo
+    load1
+}
+
+// dependencies declaration
+configurations {
+    integrationImplementation.extendsFrom(implementation)
+    demoImplementation.extendsFrom(implementation)
+    load1Implementation.extendsFrom(implementation)
+}
+
+dependencies {
+    implementation project(":manager")
+}
+
+task (load1Jar, type: Jar) {
+    base {
+        archivesName = "openremote-load1-${project.name}"
+    }
+    from sourceSets.load1.output
+}
+
+// Order of JAR tasks affects the name of the final jar but not the contents which is odd
+// So putting demo last
+task (demoJar, type: Jar) {
+    base {
+        archivesName = "openremote-demo-${project.name}"
+    }
+    from sourceSets.demo.output
+}
+
+// Use demo setup sourceset by default for jar
+task installDist(type: Copy) {
+    def setupTask = getTasksByName(project.hasProperty("SETUP_JAR") ? "${project.getProperties().get("SETUP_JAR")}Jar" : "demoJar", false)[0] as org.gradle.jvm.tasks.Jar
+    System.out.println(setupTask.name)
+    dependsOn setupTask
+    dependsOn resolveTask(":manager:installDist")
+    from setupTask.archiveFile
+    into "${project(":manager").buildDir}/install/manager/deployment/manager/extensions"
+}

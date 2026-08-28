@@ -1,0 +1,118 @@
+apply plugin: "java-library"
+apply plugin: "groovy"
+apply plugin: "maven-publish"
+apply plugin: "signing"
+
+dependencies {
+    api "com.ghgande:j2mod:3.2.1"
+    api project(":container")
+
+    api "io.netty:netty-codec:$nettyVersion"
+    api "io.netty:netty-codec-http:$nettyVersion"
+
+    api "com.fazecast:jSerialComm:$jSerialCommVersion"
+
+    api "com.github.calimero:calimero-core:$calimeroVersion"
+
+    api ("com.github.calimero:calimero-tools:$calimeroVersion") {
+        // Has a dependency on the SLF4J simple provider
+        exclude group: "org.slf4j"
+    }
+
+    api "net.sf.saxon:Saxon-HE:$saxonHEVersion"
+    implementation 'com.digitalpetri.modbus:modbus-tcp:2.1.0'
+
+    implementation 'org.apache.plc4x:plc4j-api:0.12.0'
+    runtimeOnly 'org.apache.plc4x:plc4j-driver-modbus:0.12.0'
+
+
+
+    //IKEA Tradfri agent dependencies
+    api "org.eclipse.californium:californium-core:$californiumCoreVersion"
+    api "org.eclipse.californium:scandium:$californiumScandiumVersion"
+
+    api("org.openremote:or-zwave:$zwaveVersion") {
+        exclude group: "org.bidib.com.neuronrobotics"
+    }
+
+    api "com.hivemq:hivemq-mqtt-client:$hiveMQClientVersion"
+
+    api("com.github.weliem:blessed-bluez:$bluetoothVersion") {
+        exclude group: "com.github.weliem.blessed-bluez", module: "blessed-test"
+    }
+    implementation files("/src/main/lib/j2mod-3.2.1.jar")
+    implementation "dev.failsafe:failsafe:$failsafeVersion"
+
+    implementation "org.eclipse.angus:angus-mail:$jakartaMailVersion"
+
+    implementation "org.jdom:jdom2:$jdomVersion"
+}
+
+base {
+    archivesName = "openremote-${project.name}"
+}
+
+javadoc {
+    failOnError = false
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            group = "io.openremote"
+            artifactId = "openremote-${project.name}"
+            from components.java
+            pom {
+                name = 'OpenRemote Agent'
+                description = 'Provides agent SPI and built in agents; add maven {url "https://repo.osgeo.org/repository/release/"} and maven {url "https://pkgs.dev.azure.com/OpenRemote/OpenRemote/_packaging/OpenRemote/maven/v1"} to resolve all dependencies'
+                url = 'https://github.com/openremote/openremote'
+                licenses {
+                    license {
+                        name = 'GNU Affero General Public License v3.0'
+                        url = 'https://www.gnu.org/licenses/agpl-3.0.en.html'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'developers'
+                        name = 'Developers'
+                        email = 'developers@openremote.io'
+                        organization = 'OpenRemote'
+                        organizationUrl = 'https://openremote.io'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/openremote/openremote.git'
+                    developerConnection = 'scm:git:ssh://github.com:openremote/openremote.git'
+                    url = 'https://github.com/openremote/openremote/tree/master'
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            if (!version.endsWith('-LOCAL')) {
+                credentials {
+                    username = findProperty("publishUsername")
+                    password = findProperty("publishPassword")
+                }
+            }
+            url = version.endsWith('-LOCAL') ? layout.buildDirectory.dir('repo') : version.endsWith('-SNAPSHOT') ? findProperty("snapshotsRepoUrl") : findProperty("releasesRepoUrl")
+        }
+    }
+}
+
+signing {
+    def signingKey = findProperty("signingKey")
+    def signingPassword = findProperty("signingPassword")
+    if (signingKey && signingPassword) {
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        sign publishing.publications.maven
+    }
+}

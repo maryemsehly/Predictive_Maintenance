@@ -1,0 +1,8 @@
+org.openremote.manager.system.JvmHealthStatusProvider
+org.openremote.manager.system.SslHealthStatusProvider
+org.openremote.manager.system.SystemHealthStatusProvider
+org.openremote.manager.rules.RulesHealthStatusProvider
+org.openremote.manager.agent.AgentHealthStatusProvider
+org.openremote.manager.datapoint.AssetDatapointHealthStatusProvider
+org.openremote.manager.datapoint.AssetPredictedDatapointHealthStatusProvider
+org.openremote.manager.system.CamelHealthStatusProvider

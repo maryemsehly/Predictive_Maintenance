@@ -1,0 +1,33 @@
+{
+  "name": "@openremote/or-components",
+  "version": "1.3.3",
+  "description": "OpenRemote basic UI components",
+  "exports": {
+    "./*": "./lib/*.js"
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "lib/*"
+      ]
+    }
+  },
+  "scripts": {
+    "test": "echo \"No tests\" && exit 0",
+    "prepack": "npx tsc -b"
+  },
+  "author": "OpenRemote",
+  "license": "AGPL-3.0-or-later",
+  "dependencies": {
+    "@material/elevation": "^9.0.0",
+    "@openremote/core": "workspace:*",
+    "lit": "^2.0.2",
+    "simplebar": "^5.3.6"
+  },
+  "devDependencies": {
+    "@openremote/util": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
